@@ -1,0 +1,16 @@
+{
+  "name": "smallweb-browser",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:client": "npm --workspace client run dev",
+    "dev:server": "npm --workspace server run dev",
+    "seed": "npm --workspace server run seed",
+    "build": "npm --workspace client run build",
+    "test": "npm --workspace server test"
+  }
+}

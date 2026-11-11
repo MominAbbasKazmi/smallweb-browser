@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+SmallWeb_Browser_Technical_Blueprint.md
+Wyxan-FullStack-Technical-Assessment.html
+npm-debug.log*
+*.log
