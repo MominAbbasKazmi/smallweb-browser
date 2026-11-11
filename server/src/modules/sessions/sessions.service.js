@@ -64,6 +64,7 @@ export async function updateScrollForPerson(personId, payload) {
 
   const scrollSchema = z.object({
     address: z.string().trim().min(1),
+    visitId: z.string().min(1).optional(),
     scrollY: z.number().min(0).max(100000).default(0)
   });
 
@@ -77,7 +78,9 @@ export async function updateScrollForPerson(personId, payload) {
     throw new ApiError(404, 'NOT_FOUND', 'No saved session for this person.');
   }
 
-  const entryIndex = session.entries.findIndex((entry) => entry.address === validated.data.address);
+  const entryIndex = validated.data.visitId
+    ? session.entries.findIndex((entry) => String(entry.visitId) === validated.data.visitId)
+    : session.entries.findIndex((entry) => entry.address === validated.data.address);
   if (entryIndex === -1) {
     throw new ApiError(404, 'NOT_FOUND', 'Address not found in the saved session.');
   }
