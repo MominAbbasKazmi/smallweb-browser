@@ -3,5 +3,5 @@ import { createVisit, historyForPerson } from './visits.controller.js';
 
 export const visitsRouter = express.Router();
 
-visitsRouter.post('/', createVisit);
+visitsRouter.post('/visits', createVisit);
 visitsRouter.get('/people/:personId/history', historyForPerson);

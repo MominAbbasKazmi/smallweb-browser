@@ -174,6 +174,8 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [publishForm, setPublishForm] = useState({
     title: '',
     address: '',
@@ -182,6 +184,8 @@ export default function App() {
   const [addressInput, setAddressInput] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [warning, setWarning] = useState('');
+  const [sidebarView, setSidebarView] = useState('history');
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
 
   const { state, restoreSession, navigateToAddress, goBack, goForward, updateScrollPosition, setCurrentPage } = useBrowserNavigation(selectedPersonId);
 
@@ -352,14 +356,20 @@ export default function App() {
     const query = searchQuery.trim();
     if (!query) {
       setSearchResults([]);
+      setHasSearched(false);
       return;
     }
 
+    setIsSearching(true);
+    setWarning('');
     try {
       const results = await searchSites(query);
       setSearchResults(results);
+      setHasSearched(true);
     } catch (error) {
       setWarning(error.message || 'Search failed.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -385,6 +395,7 @@ export default function App() {
       });
 
       setStatusMessage('Page published successfully.');
+      setIsPublishOpen(false);
       setPublishForm({
         title: '',
         address: '',
@@ -400,172 +411,300 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="panel">
-          <label htmlFor="person-select" className="label">Person</label>
-          <select
-            id="person-select"
-            value={selectedPersonId}
-            onChange={(event) => setSelectedPersonId(event.target.value)}
-            className="control"
-          >
-            {people.map((person) => (
-              <option key={person.id || person._id} value={person.id || person._id}>
-                {person.name}
-              </option>
-            ))}
-          </select>
+      <header className="app-header">
+        <a className="brand" href="#" onClick={(event) => event.preventDefault()} aria-label="SmallWeb home">
+          <span className="brand-mark" aria-hidden="true">s</span>
+          <span>smallweb</span>
+        </a>
+        <p className="header-note">A little corner of the internet, made by people.</p>
+        <div className="header-actions">
+          <label className="person-picker">
+            <span>Browsing as</span>
+            <select
+              id="person-select"
+              value={selectedPersonId}
+              onChange={(event) => setSelectedPersonId(event.target.value)}
+              aria-label="Choose a person"
+              disabled={people.length === 0}
+            >
+              {people.map((person) => (
+                <option key={person.id || person._id} value={person.id || person._id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="publish-trigger" onClick={() => setIsPublishOpen(true)}>
+            <span aria-hidden="true">＋</span> Write a page
+          </button>
         </div>
+      </header>
 
-        <div className="panel">
-          <h3>History</h3>
-          <div className="history-list">
-            {historySummary.length === 0 ? (
-              <p className="muted">No history yet.</p>
-            ) : (
-              historySummary.map((item) => (
-                <button
-                  key={item.id}
-                  className="history-item"
-                  type="button"
-                  onClick={() => handleNavigate(item.address, { navigationType: 'history', fromAddress: state.currentPage?.address || null })}
-                >
-                  <span className="history-item__status">{item.status}</span>
-                  <strong>{item.title || item.address}</strong>
-                  <small>{item.address}</small>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="panel">
-          <h3>Search</h3>
-          <form onSubmit={handleSearch} className="stacked-form">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search published pages"
-              className="control"
-            />
-            <button type="submit" className="primary-button">Search</button>
-          </form>
-
-          <div className="search-list">
-            {searchResults.length === 0 ? (
-              <p className="muted">No results yet.</p>
-            ) : (
-              searchResults.map((result) => (
-                <button
-                  key={result.id}
-                  type="button"
-                  className="search-result"
-                  onClick={() => handleNavigate(result.address, { navigationType: 'history' })}
-                >
-                  <strong>{result.title}</strong>
-                  <span>{result.address}</span>
-                  <small>{result.excerpt}</small>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="panel">
-          <h3>Publish</h3>
-          <form onSubmit={handlePublish} className="stacked-form">
-            <input
-              type="text"
-              value={publishForm.title}
-              onChange={(event) => setPublishForm((current) => ({ ...current, title: event.target.value }))}
-              placeholder="Page title"
-              className="control"
-            />
-            <input
-              type="text"
-              value={publishForm.address}
-              onChange={(event) => setPublishForm((current) => ({ ...current, address: event.target.value }))}
-              placeholder="address.zz"
-              className="control"
-            />
-            <textarea
-              value={publishForm.html}
-              onChange={(event) => setPublishForm((current) => ({ ...current, html: event.target.value }))}
-              rows={8}
-              className="control textarea"
-              placeholder="Write HTML..."
-            />
-            <button type="submit" className="primary-button">Publish</button>
-          </form>
-        </div>
-      </aside>
-
-      <main className="browser-panel">
-        <header className="browser-toolbar">
-          <div className="browser-toolbar__controls">
-            <button type="button" onClick={handleBack} className="toolbar-button" disabled={state.isLoading || state.currentIndex <= 0}>
-              ← Back
-            </button>
-            <button type="button" onClick={handleForward} className="toolbar-button" disabled={state.isLoading || state.currentIndex >= state.entries.length - 1}>
-              Forward →
-            </button>
-            <button type="button" onClick={handleReload} className="toolbar-button toolbar-button--ghost" disabled={!state.currentPage}>
-              Reload
-            </button>
-          </div>
-
-          <form
-            className="address-bar"
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleNavigate(addressInput, { navigationType: 'typed' });
-            }}
-          >
-            <input
-              type="text"
-              value={addressInput}
-              onChange={(event) => setAddressInput(event.target.value)}
-              className="control address-input"
-              placeholder="tidepool.zz"
-            />
-            <button type="submit" className="primary-button">Open</button>
-          </form>
-        </header>
-
-        <div className="browser-header">
-          <div>
-            <p className="eyebrow">Selected page</p>
-            <h2>{browserTitle}</h2>
-          </div>
-          {statusMessage ? <span className="status-pill">{statusMessage}</span> : null}
-        </div>
-
-        {warning ? <div className="alert-banner">{warning}</div> : null}
-
-        <div className="browser-viewport">
-          {state.isLoading ? (
-            <div className="browser-empty">Loading page…</div>
-          ) : state.currentPage && state.currentPage.status === 'not_found' ? (
-            <div className="browser-empty browser-empty--warning">
-              <h3>Page not found</h3>
-              <p>The address {state.currentPage.address} is not currently published in the mini-web.</p>
+      <section className="workspace">
+        <aside className="sidebar">
+          <div className="sidebar-heading">
+            <div>
+              <p className="eyebrow">Your little web</p>
+              <h2>Explore</h2>
             </div>
-          ) : state.currentPage && state.currentPage.html ? (
-            <HtmlPageFrame
-              page={state.currentPage}
-              key={state.currentPage.visitId || state.currentPage.address}
-              onNavigate={(address) => handleNavigate(address, { navigationType: 'link', fromAddress: state.currentPage?.address || null })}
-              onScroll={(scrollY, visitId) => updateScrollPosition(scrollY, visitId)}
-            />
+            <span className="history-count">{history.length}</span>
+          </div>
+
+          <div className="sidebar-tabs" role="tablist" aria-label="Explore pages">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={sidebarView === 'history'}
+              className={sidebarView === 'history' ? 'sidebar-tab is-active' : 'sidebar-tab'}
+              onClick={() => setSidebarView('history')}
+            >
+              History
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={sidebarView === 'search'}
+              className={sidebarView === 'search' ? 'sidebar-tab is-active' : 'sidebar-tab'}
+              onClick={() => setSidebarView('search')}
+            >
+              Find a page
+            </button>
+          </div>
+
+          {sidebarView === 'history' ? (
+            <section className="sidebar-content" role="tabpanel" aria-label="Browsing history">
+              {historySummary.length === 0 ? (
+                <div className="sidebar-empty">
+                  <span className="empty-glyph" aria-hidden="true">↗</span>
+                  <p>Your story starts here.</p>
+                  <small>Pages you visit will find a home in this list.</small>
+                </div>
+              ) : (
+                <div className="history-list">
+                  {historySummary.map((item) => (
+                    <button
+                      key={item.id}
+                      className="history-item"
+                      type="button"
+                      onClick={() => handleNavigate(item.address, { navigationType: 'history', fromAddress: state.currentPage?.address || null })}
+                    >
+                      <span className={`history-item__status ${item.status === 'not_found' ? 'is-missing' : ''}`}>
+                        <span className="status-dot" aria-hidden="true" />
+                        {item.status === 'not_found' ? 'Not found' : 'Visited'}
+                      </span>
+                      <strong>{item.title || item.address}</strong>
+                      <small className="mono">{item.address}</small>
+                      <small className="history-date">{new Date(item.visitedAt).toLocaleString()}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
           ) : (
-            <div className="browser-empty">
-              <h3>No page loaded</h3>
-              <p>Select a person or open an address to begin browsing.</p>
-            </div>
+            <section className="sidebar-content" role="tabpanel" aria-label="Search pages">
+              <p className="sidebar-intro">Look through the pages people have made.</p>
+              <form onSubmit={handleSearch} className="search-form">
+                <label className="sr-only" htmlFor="page-search">Search page titles and content</label>
+                <input
+                  id="page-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Try “tidepool”…"
+                  className="control"
+                />
+                <button type="submit" className="search-submit" disabled={isSearching} aria-label="Search">
+                  {isSearching ? '…' : '↗'}
+                </button>
+              </form>
+              <div className="search-list">
+                {searchResults.length === 0 ? (
+                  <div className="search-empty">
+                    {hasSearched ? 'Nothing turned up. Try another word.' : 'Search a word, a place, or an idea.'}
+                  </div>
+                ) : (
+                  searchResults.map((result) => (
+                    <button
+                      key={result.id}
+                      type="button"
+                      className="search-result"
+                      onClick={() => handleNavigate(result.address, { navigationType: 'history' })}
+                    >
+                      <span className="search-result__type">Page · {result.author}</span>
+                      <strong>{result.title}</strong>
+                      <span className="mono">{result.address}</span>
+                      <small>{result.excerpt}</small>
+                    </button>
+                  ))
+                )}
+              </div>
+            </section>
           )}
+
+          <div className="sidebar-foot">
+            <span className="foot-mark" aria-hidden="true">✳</span>
+            <p>Small pages. Curious people.<br />No outside internet, just this one.</p>
+          </div>
+        </aside>
+
+        <main className="browser-panel">
+          <header className="browser-toolbar">
+            <div className="browser-toolbar__controls">
+              <button type="button" onClick={handleBack} className="toolbar-button" aria-label="Go back" title="Go back" disabled={state.isLoading || state.currentIndex <= 0}>
+                ‹
+              </button>
+              <button type="button" onClick={handleForward} className="toolbar-button" aria-label="Go forward" title="Go forward" disabled={state.isLoading || state.currentIndex >= state.entries.length - 1}>
+                ›
+              </button>
+              <button type="button" onClick={handleReload} className="toolbar-button toolbar-button--reload" aria-label="Reload page" title="Reload page" disabled={!state.currentPage}>
+                ↻
+              </button>
+            </div>
+
+            <form
+              className="address-bar"
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleNavigate(addressInput, { navigationType: 'typed' });
+              }}
+            >
+              <span className="address-symbol" aria-hidden="true">⌕</span>
+              <label className="sr-only" htmlFor="address-input">Mini-web address</label>
+              <input
+                id="address-input"
+                type="text"
+                value={addressInput}
+                onChange={(event) => setAddressInput(event.target.value)}
+                className="address-input"
+                placeholder="type an address, like tidepool.zz"
+                autoComplete="off"
+                spellCheck="false"
+              />
+              <button type="submit" className="open-button" disabled={state.isLoading}>Go</button>
+            </form>
+          </header>
+
+          <div className="page-heading">
+            <div className="page-heading__title">
+              <div className="page-meta">
+                <span className={`page-status ${state.currentPage?.status === 'not_found' ? 'is-missing' : ''}`}>
+                  <span className="status-dot" aria-hidden="true" />
+                  {state.currentPage ? (state.currentPage.status === 'not_found' ? 'Unpublished address' : 'Inside the small web') : 'Ready when you are'}
+                </span>
+                {state.currentPage?.address ? <span className="mono page-address">{state.currentPage.address}</span> : null}
+              </div>
+              <h1>{browserTitle}</h1>
+            </div>
+            {statusMessage ? <span className="status-pill">{statusMessage}</span> : null}
+          </div>
+
+          {warning ? <div className="alert-banner" role="alert">{warning}</div> : null}
+
+          <div className="browser-viewport">
+            {state.isLoading ? (
+              <div className="browser-empty">
+                <span className="loading-mark" aria-hidden="true">✳</span>
+                <h3>Finding your way…</h3>
+                <p>One moment while this little page arrives.</p>
+              </div>
+            ) : state.currentPage && state.currentPage.status === 'not_found' ? (
+              <div className="browser-empty browser-empty--warning">
+                <span className="not-found-mark" aria-hidden="true">?</span>
+                <p className="eyebrow">A small dead end</p>
+                <h3>This page hasn’t been made yet.</h3>
+                <p><span className="mono">{state.currentPage.address}</span> isn’t part of the small web. You can try another address, or make this one yours.</p>
+                <button type="button" className="text-button" onClick={() => {
+                  setPublishForm((current) => ({ ...current, address: state.currentPage.address }));
+                  setIsPublishOpen(true);
+                }}>Make this page <span aria-hidden="true">↗</span></button>
+              </div>
+            ) : state.currentPage && state.currentPage.html ? (
+              <HtmlPageFrame
+                page={state.currentPage}
+                key={state.currentPage.visitId || state.currentPage.address}
+                onNavigate={(address) => handleNavigate(address, { navigationType: 'link', fromAddress: state.currentPage?.address || null })}
+                onScroll={(scrollY, visitId) => updateScrollPosition(scrollY, visitId)}
+              />
+            ) : (
+              <div className="browser-empty browser-empty--welcome">
+                <span className="welcome-sun" aria-hidden="true">✳</span>
+                <p className="eyebrow">Welcome to the small web</p>
+                <h3>A slower kind of browsing.</h3>
+                <p>Ten little corners, made by four curious people.<br />Type an address or wander through a page.</p>
+                <div className="suggested-addresses">
+                  {['tidepool.zz', 'nightgarden.zz', 'littleatlas.zz'].map((address) => (
+                    <button key={address} type="button" onClick={() => handleNavigate(address, { navigationType: 'typed' })}>
+                      {address}<span aria-hidden="true">↗</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <footer className="browser-footer">
+            <span>{state.currentPage?.address || 'The small web is yours to explore.'}</span>
+            <span>{state.currentIndex >= 0 ? `${state.currentIndex + 1} of ${state.entries.length} in this journey` : 'No pages visited yet'}</span>
+          </footer>
+        </main>
+      </section>
+
+      {isPublishOpen ? (
+        <div className="modal-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setIsPublishOpen(false);
+        }}>
+          <section className="publish-dialog" role="dialog" aria-modal="true" aria-labelledby="publish-title">
+            <div className="dialog-heading">
+              <div>
+                <p className="eyebrow">Add to the little web</p>
+                <h2 id="publish-title">Make a page</h2>
+                <p>Something you know, a place you love, a thought worth keeping.</p>
+              </div>
+              <button type="button" className="dialog-close" aria-label="Close publish dialog" onClick={() => setIsPublishOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handlePublish} className="publish-form">
+              <label>
+                <span>Page title</span>
+                <input
+                  type="text"
+                  value={publishForm.title}
+                  onChange={(event) => setPublishForm((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="A title that feels like you"
+                  className="control"
+                  required
+                  minLength={2}
+                  maxLength={200}
+                />
+              </label>
+              <label>
+                <span>Address <small>ends in .zz</small></span>
+                <input
+                  type="text"
+                  value={publishForm.address}
+                  onChange={(event) => setPublishForm((current) => ({ ...current, address: event.target.value }))}
+                  placeholder="your-place.zz"
+                  className="control mono"
+                  required
+                />
+              </label>
+              <label>
+                <span>Your page <small>simple HTML is welcome</small></span>
+                <textarea
+                  value={publishForm.html}
+                  onChange={(event) => setPublishForm((current) => ({ ...current, html: event.target.value }))}
+                  rows={9}
+                  className="control textarea mono"
+                  placeholder="<h1>Hello, small web</h1>"
+                  required
+                />
+              </label>
+              <div className="dialog-actions">
+                <button type="button" className="cancel-button" onClick={() => setIsPublishOpen(false)}>Not now</button>
+                <button type="submit" className="publish-submit">Publish page <span aria-hidden="true">↗</span></button>
+              </div>
+            </form>
+          </section>
         </div>
-      </main>
+      ) : null}
     </div>
   );
 }
