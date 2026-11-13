@@ -9,20 +9,16 @@ export async function connectDatabase() {
     return;
   }
 
-  try {
-    await mongoose.connect(env.MONGODB_URI);
-  } catch (error) {
-    if (process.env.NODE_ENV !== 'test') {
-      throw error;
-    }
-
+  if (env.NODE_ENV === 'test') {
     if (!memoryServer) {
       memoryServer = await MongoMemoryServer.create();
-      env.MONGODB_URI = memoryServer.getUri();
     }
 
-    await mongoose.connect(env.MONGODB_URI);
+    await mongoose.connect(memoryServer.getUri());
+    return;
   }
+
+  await mongoose.connect(env.MONGODB_URI);
 }
 
 export async function disconnectDatabase() {

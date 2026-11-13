@@ -1,116 +1,113 @@
 export const SITE_DEFS = [
   {
-    title: 'Tidepool Welcome',
-    address: 'tidepool.zz',
-    author: 'Ari',
+    title: 'Karachi Seaview',
+    address: 'karachi-seaview.zz',
+    author: 'Ayesha Malik',
     html: `
-      <h1>Tidepool Welcome</h1>
-      <p>Welcome to the tidepool. The water is clear, the stones are warm, and the moon has left a silver trail over the rocks.</p>
-      <p>Follow the <a href="harbor.zz">harbor path</a> or drift to <a href="drift.zz">the floating deck</a>. A quiet <a href="missing-lighthouse.zz">broken lantern</a> waits past the edge of the map.</p>
+      <h1>Karachi Seaview</h1>
+      <p>Subah ke waqt samandar ki hawa thandi hoti hai. Chai ka cup haath mein ho to Seaview ki sair aur bhi achi lagti hai.</p>
+      <p>Safar ke aglay notes <a href="androon-lahore.zz">Androon Lahore</a> se parho, ya paharon ki taraf <a href="swat-ka-kinara.zz">Swat ke darya</a> tak jao. Ek purana <a href="missing-seaview-map.zz">Seaview naqsha</a> abhi nahi mila.</p>
       <ul>
-        <li>Seaweed notes</li>
-        <li>Shell maps</li>
-        <li>Evening tide reports</li>
+        <li>Subah ki sair</li>
+        <li>Samandar ki hawa</li>
+        <li>Chai ke chhote waqfay</li>
       </ul>
     `
   },
   {
-    title: 'Harbor Ledger',
-    address: 'harbor.zz',
-    author: 'Ari',
+    title: 'Androon Lahore',
+    address: 'androon-lahore.zz',
+    author: 'Ayesha Malik',
     html: `
-      <h1>Harbor Ledger</h1>
-      <p>The harbor is full of nets, rope, and bright shells. The breeze smells of salt and cedar.</p>
-      <p>Today we logged the morning catch and marked <a href="orchard.zz">the orchard route</a> for later. The old slipway still points toward <a href="station.zz">the station</a> when the fog lifts.</p>
-      <blockquote>Meet the tide. Keep the lantern lit.</blockquote>
+      <h1>Androon Lahore</h1>
+      <p>Androon Lahore ki galiyon mein puranay darwazay, rang birangi dukanein aur khanay ki khushboo milti hai.</p>
+      <p>Yahan se <a href="hunza-ka-safar.zz">Hunza ka safar</a> parho ya <a href="qissa-khwani.zz">Qissa Khwani</a> ka rukh karo.</p>
+      <blockquote>Har gali apni ek kahani rakhti hai.</blockquote>
     `
   },
   {
-    title: 'Drift Deck',
-    address: 'drift.zz',
-    author: 'Mina',
+    title: 'Hunza ka Safar',
+    address: 'hunza-ka-safar.zz',
+    author: 'Hamza Ali',
     html: `
-      <h1>Drift Deck</h1>
-      <p>The drift deck sits over a shallow channel where the reeds sway in a slow rhythm. A glass jar holds tiny shells and a scrap of blue map paper.</p>
-      <p>Several people use the deck for quiet reading, including <a href="lantern.zz">Lantern House</a> and <a href="tidepool.zz">Tidepool Welcome</a>. A short <a href="missing-bridge.zz">bridge note</a> is missing from the map.</p>
-      <p>Every visit begins with a breath and ends with a careful look at the horizon.</p>
+      <h1>Hunza ka Safar</h1>
+      <p>Hunza ki wadi mein door tak pahaar nazar aate hain. Mausam saaf ho to subah ki roshni chotiyon par chamakti hai.</p>
+      <p>Agla safha <a href="margalla-trails.zz">Margalla Trails</a> par hai. Jheelon ka zikr parhna ho to <a href="skardu-ki-jheel.zz">Skardu ki jheel</a> chalo. Purana <a href="missing-hunza-trail.zz">Hunza trail map</a> abhi publish nahi hua.</p>
     `
   },
   {
-    title: 'Lantern House',
-    address: 'lantern.zz',
-    author: 'Sora',
+    title: 'Margalla Trails',
+    address: 'margalla-trails.zz',
+    author: 'Sana Ahmed',
     html: `
-      <h1>Lantern House</h1>
-      <p>Lantern House keeps a warm window, a hand-painted map, and a basket of notes from travelers. It is a place of careful stories and patient waiting.</p>
-      <p>From here you can go to <a href="archive.zz">the archive</a> or drift back to <a href="harbor.zz">the harbor</a>. The road to <a href="summit.zz">the summit</a> is carved into the cliff.</p>
-      <p>The light is small, but it travels far.</p>
+      <h1>Margalla Trails</h1>
+      <p>Margalla ke trail par subah chalna sukoon deta hai. Halki barish ke baad darakht aur pahaar dhulay dhulay lagte hain.</p>
+      <p>Qareeb ki tareekh ke liye <a href="taxila-ke-qissay.zz">Taxila ke qissay</a> kholo, ya safar ko wapas <a href="karachi-seaview.zz">Karachi Seaview</a> se shuru karo.</p>
     `
   },
   {
-    title: 'Station Notes',
-    address: 'station.zz',
-    author: 'Mina',
+    title: 'Qissa Khwani',
+    address: 'qissa-khwani.zz',
+    author: 'Bilal Hussain',
     html: `
-      <h1>Station Notes</h1>
-      <p>The station keeps the trains running on weather and memory. Every schedule is written with a pencil and corrected by hand.</p>
-      <p>Use the morning route to reach <a href="creek.zz">Creek Crossing</a> or return to the <a href="tidepool.zz">tidepool</a> before the noon fog rolls in. To the west sits <a href="missing-rail.zz">an abandoned line</a> that no one now uses.</p>
+      <h1>Qissa Khwani</h1>
+      <p>Qissa Khwani ke bazaar mein chai ki dukanon, puranay darwazon aur rozmarra ki raunaq ka apna hi rang hai.</p>
+      <p><a href="androon-lahore.zz">Androon Lahore</a> ke notes dekho ya <a href="quetta-ki-subah.zz">Quetta ki subah</a> ki sair karo. Ek <a href="missing-qissa-khwani-note.zz">purana bazaar note</a> filhal nahi mil raha.</p>
     `
   },
   {
-    title: 'Orchard Path',
-    address: 'orchard.zz',
-    author: 'Ari',
+    title: 'Multan ka Aangan',
+    address: 'multan-ka-aangan.zz',
+    author: 'Ayesha Malik',
     html: `
-      <h1>Orchard Path</h1>
-      <p>The paths between pear trees are lined with pebbles, old labels, and small carvings. A dozen bees work the late spring blossoms.</p>
-      <p>For a calm route, continue to <a href="meadow.zz">the meadow</a>. If the lane breaks, return to <a href="harbor.zz">the harbor ledger</a> and wait for nightfall.</p>
+      <h1>Multan ka Aangan</h1>
+      <p>Is pur-sukoon aangan mein neeli kashi ke naqsh aur mitti ke thanday bartan hain. Qareeb ke darakhton par aam pakne ka mausam hai.</p>
+      <p>Safar ke mazeed notes ke liye <a href="quetta-ki-subah.zz">Quetta ki subah</a> dekho ya <a href="androon-lahore.zz">Androon Lahore</a> ki galiyon mein wapas jao.</p>
       <ul>
-        <li>pear rows</li>
-        <li>stone signs</li>
-        <li>soft chalk paths</li>
+        <li>Neeli kashi</li>
+        <li>Aam ka mausam</li>
+        <li>Thandi shaam ka aangan</li>
       </ul>
     `
   },
   {
-    title: 'Creek Crossing',
-    address: 'creek.zz',
-    author: 'Jun',
+    title: 'Swat ka Kinara',
+    address: 'swat-ka-kinara.zz',
+    author: 'Bilal Hussain',
     html: `
-      <h1>Creek Crossing</h1>
-      <p>The creek moves gently under the planks and pushes a drift of willow leaves toward the bay. The water here is cooler than in the tidepool and easier to hear.</p>
-      <p><a href="summit.zz">Summit Road</a> climbs above the falls; <a href="station.zz">Station Notes</a> points travelers down the rail line. A forgotten sign for <a href="missing-crossing.zz">Old Crossing</a> leans against the fence.</p>
+      <h1>Swat ka Kinara</h1>
+      <p>Darya ke kinare pani ki awaaz aur darakhton ka saya safar mein ek pur-sukoon waqfa dete hain.</p>
+      <p>Pahari safar aage barhana ho to <a href="hunza-ka-safar.zz">Hunza ka safar</a> kholo, ya <a href="multan-ka-aangan.zz">Multan ke aangan</a> tak jao. Purana <a href="missing-swat-bridge.zz">darya ka pul</a> abhi naqshay par nahi.</p>
     `
   },
   {
-    title: 'Meadow Almanac',
-    address: 'meadow.zz',
-    author: 'Jun',
+    title: 'Taxila ke Qissay',
+    address: 'taxila-ke-qissay.zz',
+    author: 'Sana Ahmed',
     html: `
-      <h1>Meadow Almanac</h1>
-      <p>The meadow is full of clover, breeze, and small songbirds. A weathered bench sits under an oak tree where the grass is always a little taller.</p>
-      <p>Read the field notes from <a href="orchard.zz">the orchard path</a> and follow the morning trail to <a href="archive.zz">the archive</a>. If you turn toward the ridge, you may find a forgotten <a href="missing-mill.zz">windmill trail</a>.</p>
+      <h1>Taxila ke Qissay</h1>
+      <p>Is archive mein Taxila ke puranay maqamat, pathar ke naqsh aur tareekhi safar ke chhote notes jama hain.</p>
+      <p>Wapas <a href="margalla-trails.zz">Margalla Trails</a> par jao ya <a href="qissa-khwani.zz">Qissa Khwani</a> ke qissay parho. Ek <a href="missing-taxila-tablet.zz">pathar ki takhti ka note</a> abhi dastyab nahi.</p>
     `
   },
   {
-    title: 'Archive of Voices',
-    address: 'archive.zz',
-    author: 'Sora',
+    title: 'Skardu ki Jheel',
+    address: 'skardu-ki-jheel.zz',
+    author: 'Hamza Ali',
     html: `
-      <h1>Archive of Voices</h1>
-      <p>The archive is stacked with letters, sketches, and spoken memories pressed into paper. Each page carries a different rhythm and a different weather pattern.</p>
-      <p>Go back to the <a href="lantern.zz">Lantern House</a> or follow the path toward <a href="creek.zz">Creek Crossing</a>. The unopened folder marked <a href="missing-folder.zz">quiet records</a> invites a second glance.</p>
-      <p>Memory is not a static field. It moves, and so do we.</p>
+      <h1>Skardu ki Jheel</h1>
+      <p>Jheel ke paas subah ki khamoshi aur aas paas ke pahaar lamba safar bhula dete hain.</p>
+      <p>Mazeed pahari manazir ke liye <a href="hunza-ka-safar.zz">Hunza ki wadi</a> jao, ya <a href="swat-ka-kinara.zz">Swat ke darya</a> ke kinare waqfa lo. <a href="missing-skardu-map.zz">Purana jheel map</a> nahi mil raha.</p>
     `
   },
   {
-    title: 'Summit Road',
-    address: 'summit.zz',
-    author: 'Jun',
+    title: 'Quetta ki Subah',
+    address: 'quetta-ki-subah.zz',
+    author: 'Bilal Hussain',
     html: `
-      <h1>Summit Road</h1>
-      <p>The road narrows at the ridge and opens to a wide view of the valley. Far below, the harbor glitters in a pale line, and the small web feels almost like a map.</p>
-      <p>Take the return trail to <a href="meadow.zz">the meadow</a> or head toward <a href="lantern.zz">Lantern House</a>. The old stone marker to <a href="missing-lookout.zz">West Lookout</a> is cracked and hard to read.</p>
+      <h1>Quetta ki Subah</h1>
+      <p>Quetta ki thandi subah mein bagh ke darakht aur khula aasman ek pur-sukoon manzar banate hain.</p>
+      <p>Yahan se <a href="multan-ka-aangan.zz">Multan ke aangan</a> ke notes dekho ya <a href="qissa-khwani.zz">Qissa Khwani</a> ke bazaar ki taraf chalo. Bagh ka ek <a href="missing-quetta-map.zz">purana naqsha</a> abhi nahi mila.</p>
     `
   }
 ];

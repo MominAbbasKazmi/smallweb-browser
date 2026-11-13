@@ -679,7 +679,7 @@ export default function App() {
                 value={addressInput}
                 onChange={(event) => setAddressInput(event.target.value)}
                 className="address-input"
-                placeholder="type an address, like tidepool.zz"
+                placeholder="type an address, like karachi-seaview.zz"
                 autoComplete="off"
                 spellCheck="false"
               />
@@ -750,7 +750,7 @@ export default function App() {
                 <h3>A slower kind of browsing.</h3>
                 <p>Ten little corners, made by four curious people.<br />Type an address or wander through a page.</p>
                 <div className="suggested-addresses">
-                  {['tidepool.zz', 'nightgarden.zz', 'littleatlas.zz'].map((address) => (
+                  {['karachi-seaview.zz', 'hunza-ka-safar.zz', 'multan-ka-aangan.zz'].map((address) => (
                     <button key={address} type="button" onClick={() => handleNavigate(address, { navigationType: 'typed' })}>
                       {address}<span aria-hidden="true">↗</span>
                     </button>

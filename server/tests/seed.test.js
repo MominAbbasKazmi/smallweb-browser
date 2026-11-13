@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import mongoose from 'mongoose';
 import { connectDatabase, disconnectDatabase } from '../src/config/database.js';
+import { env } from '../src/config/env.js';
 import { BrowserSession } from '../src/models/BrowserSession.js';
 import { Person } from '../src/models/Person.js';
 import { Site } from '../src/models/Site.js';
@@ -31,12 +32,18 @@ describe('address normalization', () => {
 });
 
 describe('seed data', () => {
+  it('uses an isolated database in test mode instead of the configured URI', async () => {
+    const connectSpy = vi.spyOn(mongoose, 'connect');
+
+    await connectDatabase();
+
+    expect(connectSpy).toHaveBeenCalledOnce();
+    expect(connectSpy.mock.calls[0][0]).not.toBe(env.MONGODB_URI);
+    connectSpy.mockRestore();
+  });
+
   it('creates a deterministic dataset without duplicates', async () => {
-    try {
-      await connectDatabase();
-    } catch (error) {
-      return;
-    }
+    await connectDatabase();
 
     await Person.deleteMany({});
     await Site.deleteMany({});
@@ -55,12 +62,12 @@ describe('seed data', () => {
     const sites = await Site.countDocuments();
     const visits = await Visit.countDocuments();
     const sessions = await BrowserSession.countDocuments();
-    const tidepool = await Site.findOne({ address: 'tidepool.zz' }).lean();
+    const karachiSeaview = await Site.findOne({ address: 'karachi-seaview.zz' }).lean();
 
     expect(people).toBe(4);
     expect(sites).toBe(10);
     expect(visits).toBeGreaterThan(0);
     expect(sessions).toBe(4);
-    expect(tidepool.html).toContain('data-miniweb-address="harbor.zz"');
+    expect(karachiSeaview.html).toContain('data-miniweb-address="androon-lahore.zz"');
   });
 });

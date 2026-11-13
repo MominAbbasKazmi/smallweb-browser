@@ -1,6 +1,6 @@
 export const PEOPLE = [
-  { name: 'Ari' },
-  { name: 'Mina' },
-  { name: 'Jun' },
-  { name: 'Sora' }
+  { name: 'Ayesha Malik' },
+  { name: 'Hamza Ali' },
+  { name: 'Sana Ahmed' },
+  { name: 'Bilal Hussain' }
 ];
