@@ -55,10 +55,12 @@ describe('seed data', () => {
     const sites = await Site.countDocuments();
     const visits = await Visit.countDocuments();
     const sessions = await BrowserSession.countDocuments();
+    const tidepool = await Site.findOne({ address: 'tidepool.zz' }).lean();
 
     expect(people).toBe(4);
     expect(sites).toBe(10);
     expect(visits).toBeGreaterThan(0);
     expect(sessions).toBe(4);
+    expect(tidepool.html).toContain('data-miniweb-address="harbor.zz"');
   });
 });

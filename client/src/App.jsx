@@ -16,7 +16,7 @@ function buildFrameDocument(html = '') {
     <html>
       <head>
         <meta charset="utf-8" />
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'; navigate-to 'none';" />
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none';" />
         <style>
           html, body {
             margin: 0;
@@ -158,6 +158,12 @@ function HtmlPageFrame({ page, onNavigate, onScroll, onUnsupportedLink }) {
 export default function App() {
   const pageLoadId = useRef(0);
   const personLoadId = useRef(0);
+  const historyTabRef = useRef(null);
+  const searchTabRef = useRef(null);
+  const publishTriggerRef = useRef(null);
+  const publishDialogRef = useRef(null);
+  const publishDialogWasOpenRef = useRef(false);
+  const isPublishingRef = useRef(false);
   const [people, setPeople] = useState([]);
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [history, setHistory] = useState([]);
@@ -176,6 +182,7 @@ export default function App() {
   const [warning, setWarning] = useState('');
   const [sidebarView, setSidebarView] = useState('history');
   const [isPublishOpen, setIsPublishOpen] = useState(false);
+  isPublishingRef.current = isPublishing;
 
   const { state, restoreSession, navigateToAddress, goBack, goForward, updateScrollPosition, setCurrentPage } = useBrowserNavigation(selectedPersonId);
 
@@ -183,6 +190,18 @@ export default function App() {
 
   const loadPageForAddress = async (address, fallbackTitle = 'Page', fallbackStatus = 'success', scrollY = 0, visitId = null) => {
     const loadId = ++pageLoadId.current;
+    if (fallbackStatus === 'not_found') {
+      setCurrentPage({
+        address,
+        title: fallbackTitle || 'Not found',
+        status: 'not_found',
+        html: null,
+        scrollY,
+        visitId
+      });
+      return;
+    }
+
     try {
       const page = await getSiteByAddress(address);
       if (loadId !== pageLoadId.current) {
@@ -212,6 +231,19 @@ export default function App() {
       });
     } catch (error) {
       if (loadId !== pageLoadId.current) {
+        return;
+      }
+
+      if (error.status !== 404) {
+        setWarning(error.message || 'Could not load this page. Please try again.');
+        setCurrentPage({
+          address,
+          title: fallbackTitle || 'Page unavailable',
+          status: 'error',
+          html: null,
+          scrollY,
+          visitId
+        });
         return;
       }
 
@@ -281,6 +313,54 @@ export default function App() {
 
     loadPersonView(selectedPersonId);
   }, [selectedPersonId]);
+
+  useEffect(() => {
+    if (!isPublishOpen) {
+      if (publishDialogWasOpenRef.current) {
+        publishTriggerRef.current?.focus();
+        publishDialogWasOpenRef.current = false;
+      }
+      return undefined;
+    }
+
+    publishDialogWasOpenRef.current = true;
+    const dialog = publishDialogRef.current;
+    const firstInput = dialog?.querySelector('input:not(:disabled)');
+    const getFocusableElements = () => dialog?.querySelectorAll(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'
+    ) ?? [];
+    (firstInput || getFocusableElements()[0])?.focus();
+
+    const handleDialogKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        if (!isPublishingRef.current) {
+          setIsPublishOpen(false);
+        }
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusableElements = getFocusableElements();
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (!firstElement || !lastElement) {
+        event.preventDefault();
+        dialog?.focus();
+      } else if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleDialogKeyDown);
+    return () => document.removeEventListener('keydown', handleDialogKeyDown);
+  }, [isPublishOpen]);
 
   useEffect(() => {
     if (state.currentPage?.address) {
@@ -405,6 +485,21 @@ export default function App() {
     }
   };
 
+  const handleSidebarTabKeyDown = (event) => {
+    let nextView;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'End') {
+      nextView = 'search';
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || event.key === 'Home') {
+      nextView = 'history';
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    setSidebarView(nextView);
+    (nextView === 'history' ? historyTabRef.current : searchTabRef.current)?.focus();
+  };
+
   const browserTitle = state.currentPage?.title || 'Mini-web browser';
 
   return (
@@ -432,7 +527,7 @@ export default function App() {
               ))}
             </select>
           </label>
-          <button type="button" className="publish-trigger" onClick={() => setIsPublishOpen(true)}>
+          <button ref={publishTriggerRef} type="button" className="publish-trigger" onClick={() => setIsPublishOpen(true)}>
             <span aria-hidden="true">＋</span> Write a page
           </button>
         </div>
@@ -450,27 +545,37 @@ export default function App() {
 
           <div className="sidebar-tabs" role="tablist" aria-label="Explore pages">
             <button
+              ref={historyTabRef}
+              id="history-tab"
               type="button"
               role="tab"
               aria-selected={sidebarView === 'history'}
+              aria-controls="history-panel"
+              tabIndex={sidebarView === 'history' ? 0 : -1}
               className={sidebarView === 'history' ? 'sidebar-tab is-active' : 'sidebar-tab'}
               onClick={() => setSidebarView('history')}
+              onKeyDown={handleSidebarTabKeyDown}
             >
               History
             </button>
             <button
+              ref={searchTabRef}
+              id="search-tab"
               type="button"
               role="tab"
               aria-selected={sidebarView === 'search'}
+              aria-controls="search-panel"
+              tabIndex={sidebarView === 'search' ? 0 : -1}
               className={sidebarView === 'search' ? 'sidebar-tab is-active' : 'sidebar-tab'}
               onClick={() => setSidebarView('search')}
+              onKeyDown={handleSidebarTabKeyDown}
             >
               Find a page
             </button>
           </div>
 
           {sidebarView === 'history' ? (
-            <section className="sidebar-content" role="tabpanel" aria-label="Browsing history">
+            <section className="sidebar-content" id="history-panel" role="tabpanel" aria-labelledby="history-tab" tabIndex={0}>
               {historySummary.length === 0 ? (
                 <div className="sidebar-empty">
                   <span className="empty-glyph" aria-hidden="true">↗</span>
@@ -499,7 +604,7 @@ export default function App() {
               )}
             </section>
           ) : (
-            <section className="sidebar-content" role="tabpanel" aria-label="Search pages">
+            <section className="sidebar-content" id="search-panel" role="tabpanel" aria-labelledby="search-tab" tabIndex={0}>
               <p className="sidebar-intro">Look through the pages people have made.</p>
               <form onSubmit={handleSearch} className="search-form">
                 <label className="sr-only" htmlFor="page-search">Search page titles and content</label>
@@ -587,7 +692,13 @@ export default function App() {
               <div className="page-meta">
                 <span className={`page-status ${state.currentPage?.status === 'not_found' ? 'is-missing' : ''}`}>
                   <span className="status-dot" aria-hidden="true" />
-                  {state.currentPage ? (state.currentPage.status === 'not_found' ? 'Unpublished address' : 'Inside the small web') : 'Ready when you are'}
+                  {state.currentPage
+                    ? state.currentPage.status === 'not_found'
+                      ? 'Unpublished address'
+                      : state.currentPage.status === 'error'
+                        ? 'Page unavailable'
+                        : 'Inside the small web'
+                    : 'Ready when you are'}
                 </span>
                 {state.currentPage?.address ? <span className="mono page-address">{state.currentPage.address}</span> : null}
               </div>
@@ -596,7 +707,7 @@ export default function App() {
             {statusMessage ? <span className="status-pill">{statusMessage}</span> : null}
           </div>
 
-          {warning ? <div className="alert-banner" role="alert">{warning}</div> : null}
+          {warning || state.error ? <div className="alert-banner" role="alert">{warning || state.error}</div> : null}
 
           <div className="browser-viewport">
             {state.isLoading ? (
@@ -615,6 +726,14 @@ export default function App() {
                   setPublishForm((current) => ({ ...current, address: state.currentPage.address }));
                   setIsPublishOpen(true);
                 }}>Make this page <span aria-hidden="true">↗</span></button>
+              </div>
+            ) : state.currentPage?.status === 'error' ? (
+              <div className="browser-empty browser-empty--warning">
+                <span className="not-found-mark" aria-hidden="true">!</span>
+                <p className="eyebrow">Page unavailable</p>
+                <h3>This page couldn’t be loaded.</h3>
+                <p><span className="mono">{state.currentPage.address}</span> couldn’t be reached. Check the connection and try again.</p>
+                <button type="button" className="text-button" onClick={handleReload}>Try again</button>
               </div>
             ) : state.currentPage && state.currentPage.html ? (
               <HtmlPageFrame
@@ -649,9 +768,9 @@ export default function App() {
 
       {isPublishOpen ? (
         <div className="modal-backdrop" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setIsPublishOpen(false);
+          if (event.target === event.currentTarget && !isPublishing) setIsPublishOpen(false);
         }}>
-          <section className="publish-dialog" role="dialog" aria-modal="true" aria-labelledby="publish-title">
+          <section ref={publishDialogRef} className="publish-dialog" role="dialog" aria-modal="true" aria-labelledby="publish-title">
             <div className="dialog-heading">
               <div>
                 <p className="eyebrow">Add to the little web</p>

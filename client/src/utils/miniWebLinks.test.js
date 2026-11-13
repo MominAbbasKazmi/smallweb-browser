@@ -25,6 +25,19 @@ describe('mini-web page links', () => {
     expect(onNavigate).toHaveBeenCalledWith('tidepool.zz');
   });
 
+  it('continues to navigate legacy .zz links stored in seeded pages', () => {
+    const event = { preventDefault: vi.fn() };
+    const onNavigate = vi.fn();
+
+    handleMiniWebLinkClick(event, createLink({ href: 'harbor.zz' }), {
+      onNavigate,
+      onUnsupportedLink: vi.fn()
+    });
+
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(onNavigate).toHaveBeenCalledWith('harbor.zz');
+  });
+
   it('blocks unsupported destinations and reports them to the browser', () => {
     const event = { preventDefault: vi.fn() };
     const onUnsupportedLink = vi.fn();

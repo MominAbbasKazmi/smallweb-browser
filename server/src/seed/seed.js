@@ -7,6 +7,7 @@ import { Site } from '../models/Site.js';
 import { Visit } from '../models/Visit.js';
 import { normalizeAddress } from '../utils/normalizeAddress.js';
 import { extractPlainText } from '../utils/extractPlainText.js';
+import { sanitizeMiniWebHtml } from '../security/sanitizeHtml.js';
 import { PEOPLE } from './data/people.js';
 import { SITE_DEFS } from './data/sites.js';
 import { VISIT_DEFS } from './data/visits.js';
@@ -34,7 +35,8 @@ export async function seedDatabase() {
     }
 
     const normalizedAddress = normalizeAddress(siteDef.address);
-    const plainText = extractPlainText(siteDef.html);
+    const sanitizedHtml = sanitizeMiniWebHtml(siteDef.html);
+    const plainText = extractPlainText(sanitizedHtml);
 
     const site = await Site.findOneAndUpdate(
       { address: normalizedAddress },
@@ -42,7 +44,7 @@ export async function seedDatabase() {
         $set: {
           title: siteDef.title,
           address: normalizedAddress,
-          html: siteDef.html,
+          html: sanitizedHtml,
           plainText,
           authorId: author._id
         }
