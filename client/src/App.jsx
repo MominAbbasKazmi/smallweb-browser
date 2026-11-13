@@ -9,13 +9,14 @@ import {
   searchSites
 } from './services/apiClient.js';
 import { normalizeAddress } from './utils/address.js';
+import { handleMiniWebLinkClick } from './utils/miniWebLinks.js';
 
 function buildFrameDocument(html = '') {
   return `<!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8" />
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;" />
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'; navigate-to 'none';" />
         <style>
           html, body {
             margin: 0;
@@ -61,10 +62,10 @@ function buildFrameDocument(html = '') {
     </html>`;
 }
 
-function HtmlPageFrame({ page, onNavigate, onScroll }) {
+function HtmlPageFrame({ page, onNavigate, onScroll, onUnsupportedLink }) {
   const iframeRef = useRef(null);
-  const callbacksRef = useRef({ onNavigate, onScroll });
-  callbacksRef.current = { onNavigate, onScroll };
+  const callbacksRef = useRef({ onNavigate, onScroll, onUnsupportedLink });
+  callbacksRef.current = { onNavigate, onScroll, onUnsupportedLink };
 
   useEffect(() => {
     const frame = iframeRef.current;
@@ -100,19 +101,7 @@ function HtmlPageFrame({ page, onNavigate, onScroll }) {
           return;
         }
 
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#')) {
-          return;
-        }
-
-        const match = normalizeAddress(href);
-        if (!match) {
-          event.preventDefault();
-          return;
-        }
-
-        event.preventDefault();
-        callbacksRef.current.onNavigate(match);
+        handleMiniWebLinkClick(event, link, callbacksRef.current);
       };
 
       doc.addEventListener('scroll', syncScroll, { passive: true });
@@ -176,6 +165,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [publishForm, setPublishForm] = useState({
     title: '',
     address: '',
@@ -375,6 +365,10 @@ export default function App() {
 
   const handlePublish = async (event) => {
     event.preventDefault();
+    if (isPublishing) {
+      return;
+    }
+
     if (!selectedPersonId) {
       setWarning('Select a person before publishing.');
       return;
@@ -386,6 +380,8 @@ export default function App() {
       return;
     }
 
+    setIsPublishing(true);
+    setWarning('');
     try {
       await publishSite({
         title: publishForm.title.trim(),
@@ -404,6 +400,8 @@ export default function App() {
       await handleNavigate(address, { navigationType: 'publish' });
     } catch (error) {
       setWarning(error.message || 'Publishing failed.');
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -623,6 +621,7 @@ export default function App() {
                 page={state.currentPage}
                 key={state.currentPage.visitId || state.currentPage.address}
                 onNavigate={(address) => handleNavigate(address, { navigationType: 'link', fromAddress: state.currentPage?.address || null })}
+                onUnsupportedLink={() => setWarning('Only pages inside the .zz small web can be opened here.')}
                 onScroll={(scrollY, visitId) => updateScrollPosition(scrollY, visitId)}
               />
             ) : (
@@ -659,7 +658,7 @@ export default function App() {
                 <h2 id="publish-title">Make a page</h2>
                 <p>Something you know, a place you love, a thought worth keeping.</p>
               </div>
-              <button type="button" className="dialog-close" aria-label="Close publish dialog" onClick={() => setIsPublishOpen(false)}>×</button>
+              <button type="button" className="dialog-close" aria-label="Close publish dialog" onClick={() => setIsPublishOpen(false)} disabled={isPublishing}>×</button>
             </div>
             <form onSubmit={handlePublish} className="publish-form">
               <label>
@@ -698,8 +697,10 @@ export default function App() {
                 />
               </label>
               <div className="dialog-actions">
-                <button type="button" className="cancel-button" onClick={() => setIsPublishOpen(false)}>Not now</button>
-                <button type="submit" className="publish-submit">Publish page <span aria-hidden="true">↗</span></button>
+                <button type="button" className="cancel-button" onClick={() => setIsPublishOpen(false)} disabled={isPublishing}>Not now</button>
+                <button type="submit" className="publish-submit" disabled={isPublishing}>
+                  {isPublishing ? 'Publishing…' : 'Publish page'} <span aria-hidden="true">↗</span>
+                </button>
               </div>
             </form>
           </section>

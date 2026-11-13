@@ -56,6 +56,26 @@ describe('history and search APIs', () => {
     expect(response.body.data.results[0]).not.toHaveProperty('html');
   });
 
+  it('sanitizes published HTML before storing and returning it', async () => {
+    const author = await Person.create({ name: 'Safety Author' });
+    const response = await request(app)
+      .post('/api/sites')
+      .send({
+        title: 'Safe Harbor',
+        address: 'safe-harbor.zz',
+        html: '<h1>Safe harbor</h1><script>window.parent.alert(1)</script><p onclick="alert(1)">Open water ahead.</p>',
+        authorId: String(author._id)
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.site.html).not.toMatch(/<script|onclick|window\.parent/i);
+
+    const fetched = await request(app).get('/api/sites/safe-harbor.zz');
+    expect(fetched.status).toBe(200);
+    expect(fetched.body.data.site.html).toBe(response.body.data.site.html);
+    expect(fetched.body.data.site.plainText).toBe('Safe harbor Open water ahead.');
+  });
+
   it('keeps visit history scoped to the selected person and includes broken visits', async () => {
     const [firstPerson, secondPerson] = await Person.create([
       { name: 'History Reader One' },

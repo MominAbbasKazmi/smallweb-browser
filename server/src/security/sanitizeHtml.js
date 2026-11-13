@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
+import { normalizeAddress } from '../utils/normalizeAddress.js';
 
 const ALLOWED_TAGS = [
   'h1', 'h2', 'h3', 'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li',
@@ -7,9 +8,17 @@ const ALLOWED_TAGS = [
 ];
 
 const ALLOWED_ATTRIBUTES = {
-  a: ['href', 'title', 'rel'],
+  a: ['href', 'title', 'rel', 'data-miniweb-address', 'data-unsupported-link'],
   '*': ['class']
 };
+
+function getMiniWebAddress(href) {
+  try {
+    return normalizeAddress(href);
+  } catch {
+    return null;
+  }
+}
 
 export function sanitizeMiniWebHtml(input = '') {
   const rawHtml = typeof input === 'string' ? input : String(input ?? '');
@@ -24,23 +33,36 @@ export function sanitizeMiniWebHtml(input = '') {
       a: (tagName, attribs) => {
         const href = typeof attribs.href === 'string' ? attribs.href.trim() : '';
         const normalized = href.toLowerCase();
-        const isInternalMiniWebLink = /^[a-z0-9.-]+\.zz$/i.test(normalized) || /^[a-z0-9.-]+\.zz\/?$/i.test(normalized);
-        const isAbsoluteUrl = /^https?:\/\//i.test(normalized) || /^mailto:/i.test(normalized);
+        const address = getMiniWebAddress(href);
 
-        if (isInternalMiniWebLink || isAbsoluteUrl) {
+        if (address) {
           return {
             tagName,
             attribs: {
-              ...attribs,
-              rel: 'noopener noreferrer',
-              target: ''
+              href: '#miniweb-link',
+              'data-miniweb-address': address,
+              rel: 'noopener noreferrer'
+            }
+          };
+        }
+
+        if (normalized.startsWith('#')) {
+          return {
+            tagName,
+            attribs: {
+              href,
+              title: attribs.title
             }
           };
         }
 
         return {
-          tagName: 'span',
-          attribs: {}
+          tagName,
+          attribs: {
+            href: '#unsupported-link',
+            'data-unsupported-link': 'true',
+            title: attribs.title
+          }
         };
       }
     },
